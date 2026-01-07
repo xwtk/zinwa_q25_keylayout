@@ -276,8 +276,8 @@ def generate_kcm_file(locale, layout_type, kcm_filename, output_dir):
     
     # Create KCM content with proper header
     content = "#\n"
-    content += "# {} for reduced physical keyboard\n".format(language_name)
-    content += "# Gor Mirzoyan (xwtk.cloud).\n"
+    content += "# {} for Zinwa Q25 physical keyboard.\n".format(language_name)
+    content += "# Gor Mirzoyan (xwtk.cloud) and the community.\n"
     content += "#\n\n"
     content += "type OVERLAY\n\n"
     
@@ -370,3 +370,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     main(args.language_list, args.output_dir)
+
