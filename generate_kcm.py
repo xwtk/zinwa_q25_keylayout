@@ -58,12 +58,28 @@ LANGUAGE_NAMES = {
 
 # Character mappings for non-Latin languages
 CHARACTER_MAPPINGS = {
-    'alt-sym': {
+    'alt-sym-qwerty': {
         'Q': ('#', '~'), 'W': ('1', '`'), 'E': ('2', '{'), 'R': ('3', '}'), 'T': ('(', '['),
         'Y': (')', ']'), 'U': ('_', '<'), 'I': ('-', '>'), 'O': ('+', '^'), 'P': ('@', '%'),
         'A': ('*', '='), 'S': ('4', '÷'), 'D': ('5', '±'), 'F': ('6', '•'), 'G': ('/', '\\\\'),
         'H': (':', '|'), 'J': (';', '&'), 'K': ('’', '“'), 'L': ('”', '”'),
         'Z': ('7', '«'), 'X': ('8', '»'), 'C': ('9', '™'), 'V': ('?', '¿'), 'B': ('!', '!'),
+        'N': (',', '¦'), 'M': ('.', '§')
+    },
+    'alt-sym-qwertz': {
+        'Q': ('#', '~'), 'W': ('1', '`'), 'E': ('2', '{'), 'R': ('3', '}'), 'T': ('(', '['),
+        'Z': (')', ']'), 'U': ('_', '<'), 'I': ('-', '>'), 'O': ('+', '^'), 'P': ('@', '%'),
+        'A': ('*', '='), 'S': ('4', '÷'), 'D': ('5', '±'), 'F': ('6', '•'), 'G': ('/', '\\\\'),
+        'H': (':', '|'), 'J': (';', '&'), 'K': ('’', '“'), 'L': ('”', '”'),
+        'Y': ('7', '«'), 'X': ('8', '»'), 'C': ('9', '™'), 'V': ('?', '¿'), 'B': ('!', '!'),
+        'N': (',', '¦'), 'M': ('.', '§')
+    },
+    'alt-sym-azerty': {
+        'A': ('#', '~'), 'Z': ('1', '`'), 'E': ('2', '{'), 'R': ('3', '}'), 'T': ('(', '['),
+        'Y': (')', ']'), 'U': ('_', '<'), 'I': ('-', '>'), 'O': ('+', '^'), 'P': ('@', '%'),
+        'Q': ('*', '='), 'S': ('4', '÷'), 'D': ('5', '±'), 'F': ('6', '•'), 'G': ('/', '\\\\'),
+        'H': (':', '|'), 'J': (';', '&'), 'K': ('’', '“'), 'L': ('”', '”'),
+        'W': ('7', '«'), 'X': ('8', '»'), 'C': ('9', '™'), 'V': ('?', '¿'), 'B': ('!', '!'),
         'N': (',', '¦'), 'M': ('.', '§')
     },
     'ru': {  # Russian
@@ -276,8 +292,8 @@ def generate_kcm_file(locale, layout_type, kcm_filename, output_dir):
     
     # Create KCM content with proper header
     content = "#\n"
-    content += "# {} for Zinwa Q25 physical keyboard.\n".format(language_name)
-    content += "# Gor Mirzoyan (xwtk.cloud) and the community.\n"
+    content += "# {} for reduced physical keyboard\n".format(language_name)
+    content += "# Gor Mirzoyan (xwtk.cloud).\n"
     content += "#\n\n"
     content += "type OVERLAY\n\n"
     
@@ -295,15 +311,30 @@ def generate_kcm_file(locale, layout_type, kcm_filename, output_dir):
             # Get character mapping, prioritize full locale
             if locale in CHARACTER_MAPPINGS and key_label in CHARACTER_MAPPINGS[locale]:
                 base_char, shift_char = CHARACTER_MAPPINGS[locale][key_label]
-                alt, sym = CHARACTER_MAPPINGS["alt-sym"][key_label]
+                if layout_type == "QWERTZ":
+                    alt, sym = CHARACTER_MAPPINGS["alt-sym-qwertz"][key_label]
+                elif layout_type == "AZERTY":
+                    alt, sym = CHARACTER_MAPPINGS["alt-sym-azerty"][key_label]
+                else:
+                    alt, sym = CHARACTER_MAPPINGS["alt-sym-qwerty"][key_label]
             elif locale.split('_')[0] in CHARACTER_MAPPINGS and key_label in CHARACTER_MAPPINGS[locale.split('_')[0]]:
                 base_char, shift_char = CHARACTER_MAPPINGS[locale.split('_')[0]][key_label]
-                alt, sym = CHARACTER_MAPPINGS["alt-sym"][key_label]
+                if layout_type == "QWERTZ":
+                    alt, sym = CHARACTER_MAPPINGS["alt-sym-qwertz"][key_label]
+                elif layout_type == "AZERTY":
+                    alt, sym = CHARACTER_MAPPINGS["alt-sym-azerty"][key_label]
+                else:
+                    alt, sym = CHARACTER_MAPPINGS["alt-sym-qwerty"][key_label]
             else:
                 # Default to Latin mapping
                 base_char = key_label.lower()
                 shift_char = key_label.upper()
-                alt, sym = CHARACTER_MAPPINGS["alt-sym"][key_label]
+                if layout_type == "QWERTZ":
+                    alt, sym = CHARACTER_MAPPINGS["alt-sym-qwertz"][key_label]
+                elif layout_type == "AZERTY":
+                    alt, sym = CHARACTER_MAPPINGS["alt-sym-azerty"][key_label]
+                else:
+                    alt, sym = CHARACTER_MAPPINGS["alt-sym-qwerty"][key_label]
             
             # Apply Unicode escaping to non-ASCII characters
             escaped_base = unicode_escape(base_char)
@@ -320,6 +351,15 @@ def generate_kcm_file(locale, layout_type, kcm_filename, output_dir):
             content += "    lalt, alt: '{}'\n".format(escaped_alt)
             content += "    sym: '{}'\n".format(escaped_sym)
             content += "}\n\n"
+    
+    # Add GRAVE key behavior
+    content += "key GRAVE {\n"
+    content += "    label: '$'\n"
+    content += "    base, capslock: '$'\n"
+    content += "    shift: '\\u20AC'\n"
+    content += "    lalt, alt: '$'\n"
+    content += "    sym: '$'\n"
+    content += "}"
     
     # Write to file
     os.makedirs(output_dir, exist_ok=True)
@@ -370,4 +410,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     main(args.language_list, args.output_dir)
-
